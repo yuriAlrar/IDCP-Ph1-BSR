@@ -1,8 +1,6 @@
-# Dataset Preparation
+# データセットの準備
 
-[English](DatasetPreparation.md) **|** [简体中文](DatasetPreparation_CN.md)
-
-#### Contents
+#### 目次
 
 1. [Data Storage Format](#Data-Storage-Format)
     1. [How to Use](#How-to-Use)
