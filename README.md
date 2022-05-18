@@ -84,13 +84,13 @@ BasicSR (**Basic** **S**uper **R**estoration)は、超解像、ノイズ除去�
 - 現在サポートされているデータセット（`torch.utils.data.Dataset`クラス）の説明は、[Datasets.md](docs/Datasets.md)に記載されています。
 
 ##  トレーニング＆テスト
-- **トレーニングコマンドとテストコマンド**：基本的な使い方は**[TrainTest.md](docs/TrainTest.md)**をご覧ください。
+- **トレーニングコマンドとテストコマンド**：基本的な使い方は **[TrainTest.md](docs/TrainTest.md)** をご覧ください。
 - **オプション/設定**：[Config.md](docs/Config.md)を参照してください。
 - **ログ**：[Logging.md](docs/Logging.md)を参照してください。
 
 ##  Model ZooとBaselines
 - 現在サポートされているモデルの説明は、[Models.md](docs/Models.md)にあります。
-- **学習済みのモデルやログ例** は、**[ModelZoo.md](docs/ModelZoo.md)**で公開されています。
+- **学習済みのモデルやログ例** は、**[ModelZoo.md](docs/ModelZoo.md)** で公開されています。
 - また、**習熟曲線**も[wandb](https://app.wandb.ai/xintao/basicsr)で提供しています。
 
 <p align="center">
