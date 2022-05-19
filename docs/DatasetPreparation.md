@@ -2,33 +2,32 @@
 
 #### 目次
 
-1. [Data Storage Format](#Data-Storage-Format)
-    1. [How to Use](#How-to-Use)
-    1. [How to Implement](#How-to-Implement)
-    1. [LMDB Description](#LMDB-Description)
-    1. [Data Pre-fetcher](#Data-Pre-fetcher)
-1. [Image Super-Resolution](#Image-Super-Resolution)
+1. [データ保存形式](#データ保存形式)
+    1. [使い方](#使い方)
+    1. [実装方法](#実装方法)
+    1. [LMDBについて](#LMDBについて)
+    1. [データの事前準備](#データの事前準備)
+1. [画像超解像](#画像超解像)
     1. [DIV2K](#DIV2K)
-    1. [Common Image SR Datasets](#Common-Image-SR-Datasets)
-1. [Video Super-Resolution](#Video-Super-Resolution)
+    1. [一般的なSR画像データセット](#一般的なSR画像データセット)
+1. [動画超解像](#動画超解像)
     1. [REDS](#REDS)
     1. [Vimeo90K](#Vimeo90K)
 1. [StylgeGAN2](#StyleGAN2)
     1. [FFHQ](#FFHQ)
 
-## Data Storage Format
+## データ保存形式
 
-At present, there are three types of data storage formats supported:
+現在、3種類のデータ保存形式をサポートしています。
 
-1. Store in `hard disk` directly in the format of images / video frames.
-1. Make [LMDB](https://lmdb.readthedocs.io/en/release/), which could accelerate the IO and decompression speed during training.
-1. [memcached](https://memcached.org/) is also supported, if they are installed (usually on clusters).
+1. `ハードディスク`に直接、画像/ビデオフレームを保存することができます。
+1. トレーニング時のIOと展開速度を向上する事ができる[LMDB](https://lmdb.readthedocs.io/en/release/)を作成できます。
+1. [memcached](https://memcached.org/)も、それらがインストールされている場合（通常はクラスタ）、サポートされます。
 
-#### How to Use
+#### 使い方
+現時点では、異なるデータ保存形式をサポートするために、設定用 yaml ファイルを変更することができます。[PairedImageDataset](../basicsr/data/paired_image_dataset.py)を例にとると、異なる要件に応じてyamlファイルを変更することができます。
 
-At present, we can modify the configuration yaml file to support different data storage formats. Taking [PairedImageDataset](../basicsr/data/paired_image_dataset.py) as an example, we can modify the yaml file according to different requirements.
-
-1. Directly read disk data.
+1. ディスクデータの直接読み込み
 
     ```yaml
     type: PairedImageDataset
@@ -38,8 +37,8 @@ At present, we can modify the configuration yaml file to support different data 
       type: disk
     ```
 
-1. Use LMDB.
-We need to make LMDB before using it. Please refer to [LMDB description](#LMDB-Description). Note that we add meta information to the original LMDB, and the specific binary contents are also different. Therefore, LMDB from other sources can not be used directly.
+1. LMDBを使用する<br>
+LMDBを使用する前に、LMDBを作成する必要があります。[LMDBの説明](#LMDB-Description)を参照してください。なお、オリジナルのLMDBにメタ情報を付加しており、具体的なバイナリの内容も異なっています。そのため、他のソースからのLMDBをそのまま使用することはできません。
 
     ```yaml
     type: PairedImageDataset
@@ -49,8 +48,8 @@ We need to make LMDB before using it. Please refer to [LMDB description](#LMDB-D
       type: lmdb
     ```
 
-1. Use Memcached
-Your machine/clusters mush support memcached before using it. The configuration file should be modified accordingly.
+1. Memcachedを使用する<br>
+あなたのマシンやクラスタがmemcachedをサポートしていることを確認してから使用してください。それに応じて設定ファイルを変更する必要があります。
 
     ```yaml
     type: PairedImageDataset
@@ -63,24 +62,22 @@ Your machine/clusters mush support memcached before using it. The configuration 
       sys_path: /mnt/lustre/share/pymc/py3
     ```
 
-#### How to Implement
+#### 実装方法
+実装は[mmcv](https://github.com/open-mmlab/mmcv)のエレガントなfileclientの設計を呼び出すことです．BasicSRと互換性を持たせるために、インターフェイスを少し変更しました（主にLMDBに適応させるため）。詳しくは[file_client.py](../basicsr/utils/file_client.py)を参照してください。
 
-The implementation is to call the elegant fileclient design in [mmcv](https://github.com/open-mmlab/mmcv). In order to be compatible with BasicSR, we have made some changes to the interface (mainly to adapt to LMDB). See [file_client.py](../basicsr/utils/file_client.py) for details.
+独自のデータローダを実装する場合、様々なデータ保存形態に対応するためのインターフェースを簡単に呼び出すことができます。詳しくは[PairedImageDataset](../basicsr/data/paired_image_dataset.py)を参照してください。
 
-When we implement our own dataloader, we can easily call the interfaces to support different data storage forms. Please refer to [PairedImageDataset](../basicsr/data/paired_image_dataset.py) for more details.
+#### LMDBについて
 
-#### LMDB Description
+トレーニング時には、LMDBを使用して、IOとCPUのパフォーマンスを高速化します。(テスト時は通常、データが限られているため、一般的にLMDBを使用する必要はありません)。高速化はマシンのコンフィグレーションに依存し、以下の要素が影響します：
 
-During training, we use LMDB to speed up the IO and CPU decompression. (During testing, usually the data is limited and it is generally not necessary to use LMDB). The acceleration depends on the configurations of the machine, and the following factors will affect the speed:
+1. LMDBはキャッシュメカニズムに依存しており、一部のマシンは定期的にキャッシュをクリーンアップします。 したがって、データのキャッシュに失敗した場合は、データを確認する必要があります。 `free -h`コマンドの後、LMDBが占有するキャッシュはbuff/cacheエントリの下に記録されます。
+1. マシンのメモリがLMDBデータ全体を入れるのに十分な大きさであるかどうか。そうでない場合は、キャッシュを絶えず更新する必要があるため、パフォーマンスに影響します。
+1. LMDBデータセットを初めてキャッシュする場合、トレーニング速度に影響を与える可能性があります。トレーニングの前にLMDBデータセットディレクトリで` cat data.mdb > /dev/nul`することでデータをキャッシュできます。
 
-1. Some machines will clean cache regularly, and LMDB depends on the cache mechanism. Therefore, if the data fails to be cached, you need to check it. After the command `free -h`, the cache occupied by LMDB will be recorded under the `buff/cache` entry.
-1. Whether the memory of the machine is large enough to put the whole LMDB data in. If not, it will affect the speed due to the need to constantly update the cache.
-1. If you cache the LMDB dataset for the first time, it may affect the training speed. So before training, you can enter the LMDB dataset directory and cache the data by: ` cat data.mdb > /dev/nul`.
+標準のLMDBファイル（data.mdbおよびlock.mdb）に加えて、追加情報を記録するために`meta_info.txt`も追加します。 次に例を示します：
 
-In addition to the standard LMDB file (data.mdb and lock.mdb), we also add `meta_info.txt` to record additional information.
-Here is an example:
-
-**Folder Structure**
+**フォルダ構成**
 
 ```txt
 DIV2K_train_HR_sub.lmdb
@@ -89,9 +86,9 @@ DIV2K_train_HR_sub.lmdb
 ├── meta_info.txt
 ```
 
-**meta information**
+**メタ情報**
 
-`meta_info.txt`, We use txt file to record for readability. The contents are:
+`meta_info.txt`は読みやすさのために記録するtxtファイルです。 内容は次のとおりです。
 
 ```txt
 0001_s001.png (480,480,3) 1
@@ -101,21 +98,23 @@ DIV2K_train_HR_sub.lmdb
 ...
 ```
 
-Each line records an image with three fields, which indicate:
+各行は、次のことを示す3つのフィールドを持つ画像を記録します：
 
-- Image name (with suffix): 0001_s001.png
-- Image size: (480, 480,3) represents a 480x480x3 image
-- Other parameters (BasicSR uses cv2 compression level for PNG): In restoration tasks, we usually use PNG format, so `1` represents the PNG compression level `CV_IMWRITE_PNG_COMPRESSION` is 1. It can be an integer in [0, 9]. A larger value indicates stronger compression, that is, smaller storage space and longer compression time.
+- 画像名 (接尾辞): 0001_s001.png
+- 画像サイズ: (480, 480,3) 480x480x3の画像を表しています。
+- その他のパラメーター（BasicSRはPNGにcv2圧縮レベルを使用します）：復元タスクでは通常PNG形式を使用するため、1はPNG圧縮レベルを表します。`CV_IMWRITE_PNG_COMPRESSION`は`1`です。[0、9]の整数にすることができます。 値が大きいほど、圧縮が強くなります。つまり、ストレージスペースが小さくなり、圧縮時間が長くなります。
 
-**Binary Content**
+**バイナリ情報**
 
-For convenience, the binary content stored in LMDB dataset is encoded image by cv2: `cv2.imencode('.png', img, [cv2.IMWRITE_PNG_COMPRESSION, compress_level]`. You can control the compression level by `compress_level`, balancing storage space and the speed of reading (including decompression).
+便宜上、LMDBデータセットに保存されているバイナリコンテンツは、cv2によってエンコードされた画像です：`cv2.imencode（'.png', img, [cv2.IMWRITE_PNG_COMPRESSION、compress_level])`。compress_levelによって圧縮レベルを制御し、ストレージスペースと読み取り速度のバランスをとることができます（解凍を含む）。
 
-**How to Make LMDB**
-We provide a script to make LMDB. Before running the script, we need to modify the corresponding parameters accordingly. At present, we support DIV2K, REDS and Vimeo90K datasets; other datasets can also be made in a similar way.<br>
+**LMDBの作り方**
+
+LMDBを作成するためのスクリプトを提供します。スクリプトを実行する前に、対応するパラメータを適宜修正する必要があります。現在、DIV2K, REDS, Vimeo90Kをサポートしていますが、他のデータセットも同様の方法で作成できます。<br>
  `python scripts/data_preparation/create_lmdb.py`
 
-#### Data Pre-fetcher
+
+#### データの事前準備
 
 Apar from using LMDB for speed up, we could use data per-fetcher. Please refer to [prefetch_dataloader](../basicsr/data/prefetch_dataloader.py) for implementation.<br>
 It can be achieved by setting `prefetch_mode` in the configuration file. Currently, it provided three modes:
