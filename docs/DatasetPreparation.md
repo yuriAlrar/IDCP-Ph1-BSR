@@ -16,11 +16,12 @@
 1. [StylgeGAN2](#StyleGAN2)
     1. [FFHQ](#FFHQ)
 
-## データ保存形式
+## データ形式
 
-現在、3種類のデータ保存形式をサポートしています。
+原文 : data store format = データの読込フォーマット <br>
+現在、3種類のデータ形式をサポートしています。
 
-1. `ハードディスク`に直接、画像/ビデオフレームを保存することができます。
+1. `ハードディスク`に直接、画像/ビデオフレーム保存。
 1. トレーニング時のIOと展開速度を向上する事ができる[LMDB](https://lmdb.readthedocs.io/en/release/)を作成できます。
 1. [memcached](https://memcached.org/)も、それらがインストールされている場合（通常はクラスタ）、サポートされます。
 
@@ -69,7 +70,7 @@ LMDBを使用する前に、LMDBを作成する必要があります。[LMDBの�
 
 #### LMDBについて
 
-トレーニング時には、LMDBを使用して、IOとCPUのパフォーマンスを高速化します。(テスト時は通常、データが限られているため、一般的にLMDBを使用する必要はありません)。高速化はマシンのコンフィグレーションに依存し、以下の要素が影響します：
+トレーニング時には、LMDBを使用して、IOとCPUのパフォーマンスを高速化します。(テスト時は通常、データが限られているため、一般的にLMDBを使用する必要はありません)。高速化はマシンの設定に依存し、以下の要素が影響します：
 
 1. LMDBはキャッシュメカニズムに依存しており、一部のマシンは定期的にキャッシュをクリーンアップします。 したがって、データのキャッシュに失敗した場合は、データを確認する必要があります。 `free -h`コマンドの後、LMDBが占有するキャッシュはbuff/cacheエントリの下に記録されます。
 1. マシンのメモリがLMDBデータ全体を入れるのに十分な大きさであるかどうか。そうでない場合は、キャッシュを絶えず更新する必要があるため、パフォーマンスに影響します。
@@ -98,7 +99,7 @@ DIV2K_train_HR_sub.lmdb
 ...
 ```
 
-各行は、次のことを示す3つのフィールドを持つ画像を記録します：
+各行は、次の3つのフィールドを持つ画像を記述します：
 
 - 画像名 (接尾辞): 0001_s001.png
 - 画像サイズ: (480, 480,3) 480x480x3の画像を表しています。
@@ -115,58 +116,66 @@ LMDBを作成するためのスクリプトを提供します。スクリプト�
 
 
 #### データの事前準備
+高速化のためにLMDBを使うのとは別に、フェッチごとにデータを使うこともできます。実装は[prefetch_dataloader](../basicsr/data/prefetch_dataloader.py)を参照してください。
 
-Apar from using LMDB for speed up, we could use data per-fetcher. Please refer to [prefetch_dataloader](../basicsr/data/prefetch_dataloader.py) for implementation.<br>
-It can be achieved by setting `prefetch_mode` in the configuration file. Currently, it provided three modes:
+設定ファイルに`prefetch_mode`を設定することで、現在3つのモードから動作することができます。
 
-1. None. It does not use data pre-fetcher by default. If you have already use LMDB or the IO is OK, you can set it to None.
+1. なし。デフォルトではデータプリフェッチャーを使用しません。すでにLMDBを使用している場合や、IOに問題がない場合は、Noneに設定することができます。
 
     ```yml
     prefetch_mode: ~
     ```
 
-1. `prefetch_mode: cuda`. Use CUDA prefetcher. Please see [NVIDIA/apex](https://github.com/NVIDIA/apex/issues/304#) for more details. It will occupy more GPU memory. Note that in the mode. you must also set `pin_memory=True`.
+1. `prefetch_mode: cuda` CUDA プリフェッチャーを使用します。詳細は[NVIDIA/apex](https://github.com/NVIDIA/apex/issues/304#)を参照してください。より多くの GPU メモリを占有することになります。このモードでは、`pin_memory=True`も設定する必要があることに注意してください。
 
     ```yml
     prefetch_mode: cuda
     pin_memory: true
     ```
 
-1. `prefetch_mode: cpu`. Use CPU prefetcher, please see [IgorSusmelj/pytorch-styleguide](https://github.com/IgorSusmelj/pytorch-styleguide/issues/5#) for more details. (In my tests, this mode does not accelerate)
+1. `prefetch_mode: cpu`. CPU prefetcher を使用します。詳細は[IgorSusmelj/pytorch-styleguide](https://github.com/IgorSusmelj/pytorch-styleguide/issues/5#) を参照してください。(私のテストでは、このモードでは高速化されませんでした)
 
     ```yml
     prefetch_mode: cpu
     num_prefetch_queue: 1  # 1 by default
     ```
 
-## Image Super-Resolution
-
-It is recommended to symlink the dataset root to `datasets` with the command `ln -s xxx yyy`. If your folder structure is different, you may need to change the corresponding paths in config files.
+## 画像超解像
+データセットルートと`datasets`を`ln -s xxx yyy`というコマンドでシンボリックリンクすることをお勧めします。フォルダ構成が異なる場合は、設定ファイル内の対応するパスを変更する必要があります。
 
 ### DIV2K
+[DIV2K](https://data.vision.ee.ethz.ch/cvl/DIV2K/)は，画像の超解像処理において広く用いられているデータセットです。多くの研究成果では、MATLABバイキュービックダウンサンプリングカーネルが仮定されています。MATLABのバイキュービックダウンサンプリングカーネルは、実世界の暗黙的劣化カーネルに対して良い近似ではないため、実用的ではないかもしれません。そして、このギャップを扱ったブラインド復元という別のトピックがあります。
 
-[DIV2K](https://data.vision.ee.ethz.ch/cvl/DIV2K/) is a widely-used dataset in image super-resolution. In many research works, a MATLAB bicubic downsampling kernel is assumed. It may not be practical because the MATLAB bicubic downsampling kernel is not a good approximation for the implicit degradation kernels in real-world scenarios. And there is another topic named *blind restoration* that deals with this gap.
+**準備ステップ**
 
-**Preparation Steps**
-
-1. Download the datasets from the [official DIV2K website](https://data.vision.ee.ethz.ch/cvl/DIV2K/).<br>
-1. Crop to sub-images: DIV2K has 2K resolution (e.g., 2048 × 1080) images but the training patches are usually small (e.g., 128x128 or 192x192). So there is a waste if reading the whole image but only using a very small part of it. In order to accelerate the IO speed during training, we crop the 2K resolution images to sub-images (here, we crop to 480x480 sub-images). <br>
-Note that the size of sub-images is different from the training patch size (`gt_size`) defined in the config file. Specifically, the cropped sub-images with 480x480 are stored. The dataloader will further randomly crop the sub-images to `GT_size x GT_size` patches for training. <br/>
-    Run the script [extract_subimages.py](../scripts/data_preparation/extract_subimages.py):
+1. [official DIV2K website](https://data.vision.ee.ethz.ch/cvl/DIV2K/)からデータセットをダウンロードします。<br>
+1. サブ画像にクロップします。DIV2Kは2K解像度（例：2048×1080）の画像を持っていますが、学習用パッチは通常小さいです（例：128×128、192×192）。そのため、画像全体を読み出しても、そのごく一部しか使えないという無駄があります。そこで、学習時のIO速度を上げるために、2K解像度の画像をサブ画像に切り出します（ここでは480x480のサブ画像に切り出す）。
+なお、サブ画像のサイズは、設定ファイルで定義された学習用パッチサイズ（`gt_size`）とは異なります。具体的には、480x480でクロップされたサブ画像が格納されます。dataloaderはさらにサブ画像を`GT_size x GT_size`のパッチにランダムにクロップして学習に利用します。<br>
+[extract_subimages.py](../scripts/data_preparation/extract_subimages.py)スクリプトを実行：
 
     ```python
     python scripts/data_preparation/extract_subimages.py
     ```
 
-    Remember to modify the paths and configurations if you have different settings.
-1. [Optional] Create LMDB files. Please refer to [LMDB Description](#LMDB-Description). `python scripts/data_preparation/create_lmdb.py`. Use the `create_lmdb_for_div2k` function and remember to modify the paths and configurations accordingly.
-1. Test the dataloader with the script `tests/test_paired_image_dataset.py`.
-Remember to modify the paths and configurations accordingly.
-1. [Optional] If you want to use meta_info_file, you may need to run `python scripts/data_preparation/generate_meta_info.py` to generate the meta_info_file.
+    設定が異なる場合は、パスや設定ファイルを修正することを忘れないでください。
 
-### Common Image SR Datasets
+1. [Optional] LMDBファイルを作成します。詳細は[LMDB Description](#LMDB-Description)の説明を参照してください。
+    ```
+    python scripts/data_preparation/create_lmdb.py
+    ```
+    `create_lmdb_for_div2k`関数を使用し、パスや設定を適宜修正することを忘れないようにしてください。
 
-We provide a list of common image super-resolution datasets.
+1. `tests/test_paired_image_dataset.py`スクリプトでデータローダをテストします。パスと設定を適宜変更することを忘れないでください。
+
+1. [Optional]  meta_info_fileを使用する場合、
+    ```
+    python scripts/data_preparation/generate_meta_info.py
+    ```
+    を実行してmeta_info_fileを生成する必要がある場合があります。
+
+###  一般的なSR画像データセット
+
+一般的な画像超解像データセットの一覧を提供します。
 
 <table>
   <tr>
@@ -251,7 +260,8 @@ We provide a list of common image super-resolution datasets.
   </tr>
 </table>
 
-## Video Super-Resolution
+## 動画超解像
+> 動画の翻訳は後回し
 
 It is recommended to symlink the dataset root to `datasets` with the command `ln -s xxx yyy`. If your folder structure is different, you may need to change the corresponding paths in config files.
 
