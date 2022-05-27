@@ -53,8 +53,8 @@ def prepare_keys_div2k(folder_path):
         list[str]: Key list.
     """
     print('Reading image path list ...')
-    img_path_list = sorted(list(scandir(folder_path, suffix='png', recursive=False)))
-    keys = [img_path.split('.png')[0] for img_path in sorted(img_path_list)]
+    img_path_list = sorted(list(scandir(folder_path, suffix='jpg', recursive=False)))
+    keys = [img_path.split('.jpg')[0] for img_path in sorted(img_path_list)]
 
     return img_path_list, keys
 
@@ -93,8 +93,8 @@ def prepare_keys_reds(folder_path):
         list[str]: Key list.
     """
     print('Reading image path list ...')
-    img_path_list = sorted(list(scandir(folder_path, suffix='png', recursive=True)))
-    keys = [v.split('.png')[0] for v in img_path_list]  # example: 000/00000000
+    img_path_list = sorted(list(scandir(folder_path, suffix='jpg', recursive=True)))
+    keys = [v.split('.jpg')[0] for v in img_path_list]  # example: 000/00000000
 
     return img_path_list, keys
 
@@ -140,12 +140,12 @@ def prepare_keys_vimeo90k(folder_path, train_list_path, mode):
     keys = []
     for line in train_list:
         folder, sub_folder = line.split('/')
-        img_path_list.extend([osp.join(folder, sub_folder, f'im{j + 1}.png') for j in range(7)])
+        img_path_list.extend([osp.join(folder, sub_folder, f'im{j + 1}.jpg') for j in range(7)])
         keys.extend([f'{folder}/{sub_folder}/im{j + 1}' for j in range(7)])
 
     if mode == 'gt':
         print('Only keep the 4th frame for the gt mode.')
-        img_path_list = [v for v in img_path_list if v.endswith('im4.png')]
+        img_path_list = [v for v in img_path_list if v.endswith('im4.jpg')]
         keys = [v for v in keys if v.endswith('/im4')]
 
     return img_path_list, keys
