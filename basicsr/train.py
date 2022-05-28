@@ -100,6 +100,7 @@ def train_pipeline(root_path):
 
     # load resume states if necessary
     resume_state = load_resume_state(opt)
+    print("resume_state", resume_state)
     # mkdir for experiments and logger
     if resume_state is None:
         make_exp_dirs(opt)
