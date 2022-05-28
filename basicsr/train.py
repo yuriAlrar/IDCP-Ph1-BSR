@@ -69,6 +69,7 @@ def load_resume_state(opt):
     resume_state_path = None
     if opt['auto_resume']:
         state_path = osp.join('experiments', opt['name'], 'training_states')
+        print(state_path)
         if osp.isdir(state_path):
             states = list(scandir(state_path, suffix='state', recursive=False, full_path=False))
             if len(states) != 0:
