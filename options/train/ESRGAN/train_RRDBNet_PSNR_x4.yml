@@ -33,12 +33,12 @@ datasets:
     prefetch_mode: ~
 
   val:
-    name: Set5
+    name: DIV2KVAL
     type: PairedImageDataset
-    dataroot_gt: datasets/Set5/GTmod12
-    dataroot_lq: datasets/Set5/LRbicx4
+    dataroot_gt: datasets/DIV2K_VAL/DIV2K_validation_HR_sub.lmdb
+    dataroot_lq: datasets/DIV2K_VAL/DIV2K_validation_LR_bicubic_X4_sub.lmdb
     io_backend:
-      type: disk
+      type: lmdb
 
 # network structures
 network_g:

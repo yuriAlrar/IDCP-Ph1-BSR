@@ -196,9 +196,10 @@ if __name__ == '__main__':
         help=("Options: 'DIV2K', 'REDS', 'Vimeo90K' You may need to modify the corresponding configurations in codes."))
     args = parser.parse_args()
     dataset = args.dataset.lower()
+    print(dataset)
     if dataset == 'div2k':
         create_lmdb_for_div2k()
-    elif dataset == 'div2kVal':
+    elif dataset == 'div2kval':
         create_lmdb_for_div2kVal()
     elif dataset == 'reds':
         create_lmdb_for_reds()
