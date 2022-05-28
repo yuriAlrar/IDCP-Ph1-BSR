@@ -1,16 +1,14 @@
 # Training and Testing
 
-[English](TrainTest.md) **|** [简体中文](TrainTest_CN.md)
+ `BasicSR`のルートパスでコマンドを実行してください。<br>
+一般に、トレーニング、テストともに、以下のような手順があります。
 
-Please run the commands in the root path of `BasicSR`. <br>
-In general, both the training and testing include the following steps:
+1. データセットを準備します。[DatasetPreparation.md](DatasetPreparation.md)を参照してください。
+1. コンフィグファイルを変更する。configファイルは`options`フォルダの下にあります。より具体的な設定方法については、[Config](Config.md)を参照してください。
+1. [Optional] 事前に学習したモデルをテストまたは使用する場合、事前に学習したモデルをダウンロードする必要があるかもしれません。[ModelZoo](ModelZoo.md)を参照してください。
+1. コマンドを実行します。[Training Commands](#Training-Commands)また[Testing Commands](#Testing-Commands)を適宜使用してください。
 
-1. Prepare datasets. Please refer to [DatasetPreparation.md](DatasetPreparation.md)
-1. Modify config files. The config files are under the `options` folder. For more specific configuration information, please refer to [Config](Config.md)
-1. [Optional] You may need to download pre-trained models if you are testing or using pre-trained models. Please see [ModelZoo](ModelZoo.md)
-1. Run commands. Use [Training Commands](#Training-Commands) or [Testing Commands](#Testing-Commands) accordingly.
-
-#### 目录
+#### 目次
 
 1. [Training Commands](#Training-Commands)
     1. [Single GPU Training](#Single-GPU-Training)
