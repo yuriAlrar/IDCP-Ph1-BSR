@@ -67,6 +67,7 @@ def create_train_val_dataloader(opt, logger):
 
 def load_resume_state(opt):
     resume_state_path = None
+    print("AUTO_RESUME", opt['auto_resume'])
     if opt['auto_resume']:
         state_path = osp.join('experiments', opt['name'], 'training_states')
         print('STATE_PATH', state_path)
