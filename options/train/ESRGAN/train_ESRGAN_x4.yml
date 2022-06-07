@@ -10,16 +10,16 @@ datasets:
   train:
     name: DIV2K
     type: PairedImageDataset
-    dataroot_gt: datasets/DIV2K/DIV2K_train_HR_sub
-    dataroot_lq: datasets/DIV2K/DIV2K_train_LR_bicubic/X4_sub
+    # dataroot_gt: datasets/DIV2K/DIV2K_train_HR_sub
+    # dataroot_lq: datasets/DIV2K/DIV2K_train_LR_bicubic/X4_sub
     # (for lmdb)
-    # dataroot_gt: datasets/DIV2K/DIV2K_train_HR_sub.lmdb
-    # dataroot_lq: datasets/DIV2K/DIV2K_train_LR_bicubic_X4_sub.lmdb
+    dataroot_gt: datasets/DIV2K/DIV2K_train_HR_sub.lmdb
+    dataroot_lq: datasets/DIV2K/DIV2K_train_LR_bicubic_X4_sub.lmdb
     filename_tmpl: '{}'
     io_backend:
-      type: disk
+      # type: disk
       # (for lmdb)
-      # type: lmdb
+      type: lmdb
 
     gt_size: 128
     use_hflip: true
@@ -33,12 +33,12 @@ datasets:
     prefetch_mode: ~
 
   val:
-    name: Set14
+    name: DIV2KVAL
     type: PairedImageDataset
-    dataroot_gt: datasets/Set14/GTmod12
-    dataroot_lq: datasets/Set14/LRbicx4
+    dataroot_gt: datasets/DIV2K_VAL/DIV2K_validation_HR_sub.lmdb
+    dataroot_lq: datasets/DIV2K_VAL/DIV2K_validation_LR_bicubic_X4_sub.lmdb
     io_backend:
-      type: disk
+      type: lmdb
 
 # network structures
 network_g:
