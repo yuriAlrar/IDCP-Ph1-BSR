@@ -5,22 +5,21 @@ num_gpu: 1  # set num_gpu: 0 for cpu mode
 manual_seed: 0
 
 datasets:
-  test_1:  # the 1st test dataset
-    name: Set5
-    type: PairedImageDataset
-    dataroot_gt: datasets/Set5/GTmod12
-    dataroot_lq: datasets/Set5/LRbicx4
-    io_backend:
-      type: disk
-  test_2:  # the 2nd test dataset
-    name: Set14
-    type: PairedImageDataset
-    dataroot_gt: datasets/Set14/GTmod12
-    dataroot_lq: datasets/Set14/LRbicx4
-    io_backend:
-      type: disk
-
-  test_3:
+#  test_1:  # the 1st test dataset
+#    name: Set5
+#    type: PairedImageDataset
+#    dataroot_gt: datasets/Set5/GTmod12
+#    dataroot_lq: datasets/Set5/LRbicx4
+#    io_backend:
+#      type: disk
+#  test_2:  # the 2nd test dataset
+#    name: Set14
+#    type: PairedImageDataset
+#   dataroot_gt: datasets/Set14/GTmod12
+#   dataroot_lq: datasets/Set14/LRbicx4
+#   io_backend:
+#     type: disk
+  test_1:
     name: DIV2K100
     type: PairedImageDataset
     dataroot_gt: datasets/DIV2K/DIV2K_valid_HR
@@ -40,7 +39,7 @@ network_g:
 
 # path
 path:
-  pretrain_network_g: experiments/pretrained_models/ESRGAN/ESRGAN_SRx4_DF2KOST_official-ff704c30.pth
+  pretrain_network_g: experiments/052_ESRGAN_x4_f64b23_DIV2K_400k_B16G1_051pretrain_wandb/models/net_g_latest.pth
   strict_load_g: true
 
 # validation settings
