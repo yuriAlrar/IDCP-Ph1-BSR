@@ -5,7 +5,7 @@ import torchvision.utils
 from basicsr.data import build_dataloader, build_dataset
 
 
-def main(mode='folder'):
+def main(mode='lmdb'):
     """Test paired image dataset.
 
     Args:
